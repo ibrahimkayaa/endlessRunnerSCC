@@ -25,7 +25,11 @@ public class CamerFollow : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void LateUpdate () {
-		
+	void Update () {
+
+		if(transform.position.z < target.transform.position.z + offset.z ){
+
+			transform.position = Vector3.Lerp (new Vector3 (transform.position.x, transform.position.y, transform.position.z), new Vector3 (transform.position.x, transform.position.y, target.transform.position.z + offset.z), Time.deltaTime * 5f);
+		}
 	}
 }

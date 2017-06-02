@@ -30,6 +30,7 @@ public class CharacterMovement : MonoBehaviour {
 
 
 
+
 	void Awake () {
 
 		animController = GetComponent <Animator> ();
@@ -43,6 +44,10 @@ public class CharacterMovement : MonoBehaviour {
 	
 
 	void Update () {
+
+
+
+
 		charVelocity = Vector3.zero;
 
 		groundCollidersArray = Physics.OverlapSphere (groundCheckPoint.position, groundCheckRadius, groundCheckLayerMask);
@@ -50,8 +55,9 @@ public class CharacterMovement : MonoBehaviour {
 		isGrounded = (groundCollidersArray.Length > 0) ? true : false;
 
 
-		if(Input.GetKeyDown (KeyCode.Space) && !isMoving){
+		if (/*Input.GetKeyDown (KeyCode.Space) && */!isMoving && GameManager.Instance.gmState == GameManager.GameState.Start) {
 			isMoving = true;
+			//GameManager.Instance.gmState = GameManager.GameState.Start;
 			animController.SetFloat ("Speed",speed);
 		}
 
@@ -61,38 +67,47 @@ public class CharacterMovement : MonoBehaviour {
 		rPosition.x = Mathf.MoveTowards (rPosition.x, horizontalMovement, Time.fixedDeltaTime * 5f);
 		charBody.position = new Vector3 (Mathf.Clamp (rPosition.x, -1f, 1f), rPosition.y, rPosition.z);
 
-		if(Input.GetKeyDown (KeyCode.A) && myTransform.position == currentPosition){
+
+		if(GameManager.Instance.gmState == GameManager.GameState.Start){
+
+			if (Input.GetKeyDown (KeyCode.A)) {
 
 
-			horizontalMovement = charBody.position.x - 1f ;
+				horizontalMovement = charBody.position.x - 1f ;
 
-		}else if (Input.GetKeyDown (KeyCode.D) && myTransform.position == currentPosition){
+			} else if (Input.GetKeyDown (KeyCode.D)) {
 
 
-			horizontalMovement = charBody.position.x +1f;
+				horizontalMovement = charBody.position.x +1f;
+			}
+
+			Vector3 targetPosition = new Vector3 (Mathf.Clamp (currentPosition.x,-1f,1f) , transform.position.y, transform.position.z);
+
+
+
+
+			if(isGrounded && isMoving){
+
+
+				if(Input.GetKeyDown (KeyCode.J)){
+
+
+
+					charBody.AddForce (0f, jumpForce.y * Time.fixedDeltaTime, jumpForce.x * Time.fixedDeltaTime, ForceMode.Impulse);
+
+					animController.SetTrigger ("Jump");
+					inAir = true;
+
+					if(isMoving ){
+
+						animController.SetTrigger ("Jump_Roll");
+					}
+
+				}
+			
 		}
 
-		Vector3 targetPosition = new Vector3 (Mathf.Clamp (currentPosition.x,-1f,1f) , transform.position.y, transform.position.z);
 
-	
-
-
-		if(isGrounded && isMoving){
-
-
-			if(Input.GetKeyDown (KeyCode.J)){
-
-
-				charBody.AddForce (0f, jumpForce.y * Time.fixedDeltaTime, jumpForce.x * Time.fixedDeltaTime, ForceMode.Impulse);
-				animController.SetTrigger ("Jump");
-				inAir = true;
-
-				if(isMoving ){
-
-					animController.SetTrigger ("Jump_Roll");
-				}
-
-			}
 		}
 			
 
@@ -110,9 +125,46 @@ public class CharacterMovement : MonoBehaviour {
 
 
 		charVelocity.z = speed;
-	
+
+
+		//Changed my mind, don´t want to move forward, Character will be staying and playing animation . Entire Level will move towards to the camera and the character
+		//It takes a while to implement various ways but did not like them very mucj .. I think this solution is the best and the common one of course. 
+		//I have not done this way before so cleaning up to code was take a bit time to accomplish with.
+
 		/*charBody.velocity = charVelocity * Time.fixedDeltaTime;*/
-		transform.position += charVelocity * Time.fixedDeltaTime;
+		/*transform.position += charVelocity * Time.fixedDeltaTime;*/
+		/*transform.position = Vector3.MoveTowards (transform.position, charVelocity, Time.fixedDeltaTime * 2f);*/
+
 		currentPosition = transform.position;
+	}
+
+	void OnCollisionEnter(Collision other){
+
+		if(other.gameObject.tag == "Obstacle"){
+
+			Vector3 contactVector = other.contacts [0].normal;
+
+			bool frontHit = (contactVector == Vector3.back) ? true : false;
+
+			if(frontHit){
+
+				GameManager.Instance.gmState = GameManager.GameState.MainMenu;
+				GameManager.Instance.CheckAndSetHighestScore ();
+				animController.SetTrigger ("Death");
+			}
+
+		
+
+		}
+
+	}
+
+	void OnTriggerEnter(Collider other){
+
+		if(other.gameObject.tag == "Coin"){
+
+			GameManager.Instance.SetCoinScore ();
+			other.gameObject.SetActive (false);
+		}
 	}
 }

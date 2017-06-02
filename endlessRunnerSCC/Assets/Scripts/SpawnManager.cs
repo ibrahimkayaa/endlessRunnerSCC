@@ -11,23 +11,32 @@ public class SpawnManager : Singleton<SpawnManager> {
 	public Vector3 characterSpawnPosition;
 	public GameObject characterObject;
 	public int activePadCount;
-
+	public Transform lastActivePad;
+	[HideInInspector]
+	public float padLength =  10f;
 
 
 	//Private Variables
 	GameObject padHolder;
-	GameObject character;
+	int recycleIndex = 0;
+
+
+
+
 
 
 	public void Spawn(){
 
 		Shuffle (padList);
 
+		//GameManager.Instance.gmState = GameManager.GameState.InGame;
+
 		padHolder = new GameObject ("Pool");
 		padHolder.transform.SetParent (transform);
-		Transform tempStarterPad = Instantiate (starterPad,lastSpawnPosition,Quaternion.identity);
+		/*Transform tempStarterPad = Instantiate (starterPad,lastSpawnPosition,Quaternion.identity);
 		tempStarterPad.SetParent (padHolder.transform);
-		character = Instantiate (characterObject, characterSpawnPosition, Quaternion.identity);
+		tempStarterPad.gameObject.SetActive (true);*/
+		GameManager.Instance.character = Instantiate (characterObject, characterSpawnPosition, Quaternion.identity);
 
 
 		for(int i = 1; i < padList.Count + 1 ; i ++){
@@ -40,6 +49,7 @@ public class SpawnManager : Singleton<SpawnManager> {
 				Transform tempPad = Instantiate (padList [i - 1], spawnPosition, Quaternion.identity);
 				tempPad.SetParent (padHolder.transform);
 				lastSpawnPosition = tempPad.position;
+				lastActivePad = tempPad;
 				GameManager.Instance.activePadList.Add (tempPad);
 
 			}else{
@@ -54,14 +64,40 @@ public class SpawnManager : Singleton<SpawnManager> {
 
 
 		}
+
+		GameManager.Instance.poolObject = padHolder;
 	}
 
 	public void RecyclePad(){
-		
+
+		if(recycleIndex < GameManager.Instance.activePadList.Count){
+			lastSpawnPosition = GameManager.Instance.activePadList [recycleIndex].transform.position;
+			GameManager.Instance.activePadList [recycleIndex].gameObject.SetActive (false);
+			GameManager.Instance.nonActivePadList.Add (GameManager.Instance.activePadList[recycleIndex]);
+
+			GameManager.Instance.activePadList.RemoveAt (recycleIndex);
+		}
+
 	}
 
 	public void ReUsePad(){
-		
+
+		Shuffle (GameManager.Instance.nonActivePadList);
+		Transform tempPad = GameManager.Instance.nonActivePadList [0];
+
+
+		Vector3 spawnPosition = Vector3.zero;
+		spawnPosition.z += lastActivePad.position.z + padLength;
+
+
+		tempPad.position = spawnPosition;
+		tempPad.gameObject.SetActive (true);
+
+		lastSpawnPosition = tempPad.position;
+		lastActivePad = tempPad;
+		GameManager.Instance.nonActivePadList.Remove (tempPad);
+		GameManager.Instance.activePadList.Add (tempPad);
+
 	}
 
 	private void Shuffle(List<Transform> tArray){
