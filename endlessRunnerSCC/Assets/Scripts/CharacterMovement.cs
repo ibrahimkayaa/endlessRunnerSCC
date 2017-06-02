@@ -17,12 +17,17 @@ public class CharacterMovement : MonoBehaviour {
 	public LayerMask groundCheckLayerMask;
 
 
+
 	//Private Variables
 	Animator animController;
 	Rigidbody charBody;
 	CapsuleCollider charCapsul;
 	Vector3 charVelocity;
 	Collider[] groundCollidersArray;
+	float horizontalMovement;
+	Vector3 currentPosition;
+	Transform myTransform;
+
 
 
 	void Awake () {
@@ -31,6 +36,9 @@ public class CharacterMovement : MonoBehaviour {
 		charBody = GetComponent <Rigidbody> ();
 		charCapsul = GetComponent <CapsuleCollider> ();
 		isMoving = false;
+		currentPosition = transform.position;
+		myTransform = transform;
+		horizontalMovement = charBody.position.x;
 	}
 	
 
@@ -47,20 +55,46 @@ public class CharacterMovement : MonoBehaviour {
 			animController.SetFloat ("Speed",speed);
 		}
 
-		if(Input.GetKeyDown (KeyCode.J) && isGrounded){
 
 
+		Vector3 rPosition = charBody.position;
+		rPosition.x = Mathf.MoveTowards (rPosition.x, horizontalMovement, Time.fixedDeltaTime * 5f);
+		charBody.position = new Vector3 (Mathf.Clamp (rPosition.x, -1f, 1f), rPosition.y, rPosition.z);
 
-			charBody.AddForce (0f, jumpForce.y * Time.fixedDeltaTime, jumpForce.x * Time.fixedDeltaTime, ForceMode.Impulse);
-			animController.SetTrigger ("Jump");
-			inAir = true;
+		if(Input.GetKeyDown (KeyCode.A) && myTransform.position == currentPosition){
 
+
+			horizontalMovement = charBody.position.x - 1f ;
+
+		}else if (Input.GetKeyDown (KeyCode.D) && myTransform.position == currentPosition){
+
+
+			horizontalMovement = charBody.position.x +1f;
 		}
 
-		if(isMoving && isGrounded ){
-			inAir = false;
-			animController.SetTrigger ("Jump_Roll");
+		Vector3 targetPosition = new Vector3 (Mathf.Clamp (currentPosition.x,-1f,1f) , transform.position.y, transform.position.z);
+
+	
+
+
+		if(isGrounded && isMoving){
+
+
+			if(Input.GetKeyDown (KeyCode.J)){
+
+
+				charBody.AddForce (0f, jumpForce.y * Time.fixedDeltaTime, jumpForce.x * Time.fixedDeltaTime, ForceMode.Impulse);
+				animController.SetTrigger ("Jump");
+				inAir = true;
+
+				if(isMoving ){
+
+					animController.SetTrigger ("Jump_Roll");
+				}
+
+			}
 		}
+			
 
 
 	}
@@ -76,7 +110,9 @@ public class CharacterMovement : MonoBehaviour {
 
 
 		charVelocity.z = speed;
+	
 		/*charBody.velocity = charVelocity * Time.fixedDeltaTime;*/
 		transform.position += charVelocity * Time.fixedDeltaTime;
+		currentPosition = transform.position;
 	}
 }

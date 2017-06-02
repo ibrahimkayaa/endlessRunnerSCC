@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: 97d576f2f961a4181ae5b9e16c2bde55
-timeCreated: 1496345323
+guid: 022b84c49cf824939b51b7c1de5a7aa6
+timeCreated: 1496359407
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
@@ -89,7 +89,7 @@ ModelImporter:
     400078: Bip01 Spine1
     400080: Bip01 Spine2
     400082: //RootNode
-    7400000: running_slide
+    7400000: Male_Laying_Pose
     9500000: //RootNode
   materials:
     importMaterials: 1
@@ -115,10 +115,10 @@ ModelImporter:
     extraExposedTransformPaths: []
     clipAnimations:
     - serializedVersion: 16
-      name: running_slide
+      name: Male_Laying_Pose
       takeName: mixamo.com
       firstFrame: 0
-      lastFrame: 30
+      lastFrame: 1
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
